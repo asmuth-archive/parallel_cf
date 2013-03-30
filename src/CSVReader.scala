@@ -7,7 +7,7 @@ import java.util.concurrent._
 
 class CSVReader[T <: Any](next: (Map[Symbol, Int] => T)){
 
-  var num_threads = 32
+  var num_threads = Runtime.getRuntime().availableProcessors()
 
   def read(file_path: String) : Buffer[T] = {
     val src = Source.fromFile(file_path)
