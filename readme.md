@@ -1,11 +1,11 @@
 parallel_cf
 ===========
 
-parallel_cf implements multi-threaded item-based collaborative filtering for binary ratings. It processes item<->item similarities from user->item interactions using the [Jaccard similarity coefficient](http://en.wikipedia.org/wiki/Jaccard_index).
+parallel_cf implements item-based collaborative filtering for binary ratings. It processes item<->item similarities from user->item interactions using the [Jaccard similarity coefficient](http://en.wikipedia.org/wiki/Jaccard_index).
 
-The key to this implementation is that the item-item co-concurrency matrix is not pre-calculated. This would be a waste of memory since it grows O(n^2) and is very sparse (it contains mostly zeros). Instead, parallel_cf builds this matrix on-the-fly while processing the recommendations. Since this is done in multiple batches, only `1 / number_of_batches` per cent of the item<->item tuples have to be unrolled in each batch which makes this O((n/number_of_batches)^2). This means the memory complexity decays quadratically as the number of batches gets larger.
+Apart from being fully multi-threaded, the key to this implementation is that the item-item co-concurrency matrix is not pre-calculated. This would be a waste of memory since it grows `O(n^2)` and is very sparse (it contains mostly zeros). Instead, parallel_cf builds this matrix on-the-fly while processing the recommendations. Since this is done in multiple independent batches, only `1 / number_of_batches` of the item<->item tuples have to be unrolled in each batch. This means the memory complexity decays quadratically as the number of batches gets larger.
 
-This code processes a real-world data set containing 16.2 million interactions in around 8 minutes (6 batches, ~8GB ram, 24 cores).
+_This code processes a real-world data set containing 16.2 million interactions in around 8 minutes (6 batches, ~8GB ram, 24 cores)._
 
 
 Example
