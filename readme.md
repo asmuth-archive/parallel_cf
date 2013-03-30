@@ -1,47 +1,11 @@
 parallel_cf
 ===========
 
-parallel_cf is a highly parallelized scala-based implementation of a item-based collaborative filtering algorithm for binary user ratings. it processes item to item distances using the jaccard coefficent from user->item interactions.
+parallel_cf implements multi-threaded item-based collaborative filtering for binary ratings. It processes item<->item similarities from user->item interactions using the [Jaccard similarity coefficient](http://en.wikipedia.org/wiki/Jaccard_index).
 
-the key to this implementation is that the item-item co-concurrency matrix is not stored in memory. this would be rather expensive since the matrix is very sparse (it contains mostly zeros). instead the matrix is build up row-by-row as the preference sets are processed in multiple concurrent threads.
+The key to this implementation is that the item-item co-concurrency matrix is not pre-calculated. This would be a waste of memory since it grows O(n^2) and is very sparse (it contains mostly zeros). Instead, parallel_cf builds this matrix on-the-fly while processing the recommendations. Since this is done in multiple batches, only `1 / number_of_batches` per cent of the item<->item tuples have to be unrolled in each batch which makes this O((n/number_of_batches)^2). This means the memory complexity decays quadratically as the number of batches gets larger.
 
-
-collaborative filtering
------------------------
-
-usecases:
-
-+ __"Users that bought this product also bought..."__ from `user_id--bought-->product_id` pairs
-+ __"Users that viewed this video also viewed..."__ from `user_id--viewed-->video_id` pairs
-+ __"Users that like this venue also like..."__ from `user_id--likes-->venue_id` pairs
-
-Your input data (the so called interaction-sets) should look like this:
-
-```
-# FORMAT A: user bought products (select buyerid, productid from sales group_by buyerid)
-[user23] product5 produt42 product17
-[user42] product8 produt16 product5
-
-# FORMAT B: user watched video (this can be transformed to the upper representation with a map/reduce)
-user3 -> video3
-user6 -> video19
-user3 -> video6
-user1 -> video42
-```
-
-The output data will look like this:
-
-```
-# similar products based on co-concurrent buys
-product5 => product17 (0.78), product8 (0.43), product42 (0.31)
-product17 => product5 (0.36), product8 (0.21), product42 (0.18)
-
-# similar videos based on co-concurrent views
-video19 => video3 (0.93), video6 (0.56), video42 (0.34)
-video42 => video19 (0.32), video3 (0.21), video6 (0.08)
-```
-
-
+This code processes a real-world data set containing 16.2 million interactions in around 8 minutes (6 batches, ~8GB ram, 24 cores).
 
 
 Example
@@ -85,6 +49,46 @@ object ExampleRecommender extends Actor {
 
 }
 ```
+
+
+Collaborative Filtering
+-----------------------
+
+Use cases:
+
++ __"Users that bought this product also bought..."__ from `user_id--bought-->product_id` pairs
++ __"Users that viewed this video also viewed..."__ from `user_id--viewed-->video_id` pairs
++ __"Users that like this venue also like..."__ from `user_id--likes-->venue_id` pairs
+
+Your input data (the so called interaction-sets) should look like this:
+
+```
+# FORMAT A: user bought products (select buyerid, productid from sales group_by buyerid)
+[user23] product5 produt42 product17
+[user42] product8 produt16 product5
+
+# FORMAT B: user watched video (this can be transformed to the upper representation with a map/reduce)
+user3 -> video3
+user6 -> video19
+user3 -> video6
+user1 -> video42
+```
+
+The output data will look like this:
+
+```
+# similar products based on co-concurrent buys
+product5 => product17 (0.78), product8 (0.43), product42 (0.31)
+product17 => product5 (0.36), product8 (0.21), product42 (0.18)
+
+# similar videos based on co-concurrent views
+video19 => video3 (0.93), video6 (0.56), video42 (0.34)
+video42 => video19 (0.32), video3 (0.21), video6 (0.08)
+```
+
+
+
+
 
 
 License
