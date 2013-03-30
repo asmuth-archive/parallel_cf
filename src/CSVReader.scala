@@ -9,11 +9,10 @@ class CSVReader[T <: Any](next: (Map[Symbol, Int] => T)){
 
   var num_threads = Runtime.getRuntime().availableProcessors()
 
-  def read(file_path: String) : Buffer[T] = {
+  def read(file_path: String) : Unit = {
     val src = Source.fromFile(file_path)
     var hdl : List[Symbol] = null
 
-    val res = new java.util.LinkedList[Future[T]]()
     val run = Executors.newFixedThreadPool(num_threads)
 
     (src.getLines().zipWithIndex foreach ((l: (String, Int)) => {
@@ -22,9 +21,9 @@ class CSVReader[T <: Any](next: (Map[Symbol, Int] => T)){
         hdl = parse_line(l._1) map (Symbol(_))
 
       else if (hdl != null)
-        res.add(run.submit(new Callable[T] { def call = {
+        run.execute(new Runnable{ def run = {
           next(parse_line_with_headers(l._1, hdl))
-        }}))
+        }})
 
     }))
 
@@ -32,8 +31,6 @@ class CSVReader[T <: Any](next: (Map[Symbol, Int] => T)){
 
     run.shutdown
     run.awaitTermination(Math.MAX_LONG, TimeUnit.SECONDS)
-
-    res.asScala.map(_.get(0, TimeUnit.SECONDS))
   }
 
 
