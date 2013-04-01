@@ -24,6 +24,7 @@ class ParallelCF(callback: (Int, scala.collection.immutable.ListMap[Int,Double])
   var num_threads   = 64
   var pset_max_size = 50
   var max_neighbors = 50
+  var min_cc_count  = 0
 
   var debug = true
 

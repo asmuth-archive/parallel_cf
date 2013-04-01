@@ -34,6 +34,9 @@ class ItemProcessor(base: ParallelCF, iid: Int){
     val max_neighbors = base.max_neighbors
     val neighbors_map = HashMap[Int, Double]()
 
+    if (base.min_cc_count > 0 && me.total_count.intValue < base.min_cc_count)
+      return
+
     known_neighbors.foreach((k: (Int, Int)) => {
       val sim = k._2.toDouble / (me.total_count.intValue + total_count(k._1) - k._2).toDouble
       neighbors_map += ((k._1, sim))
