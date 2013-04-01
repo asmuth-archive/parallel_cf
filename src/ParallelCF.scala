@@ -18,7 +18,7 @@ import scala.collection.mutable.SynchronizedSet
 
 import java.util.concurrent.atomic._
 
-class ParallelCF(callback: Actor){
+class ParallelCF(callback: (Int, scala.collection.immutable.ListMap[Int,Double]) => Unit){
 
   var num_batches   = 6
   var num_threads   = 64
@@ -119,7 +119,7 @@ class ParallelCF(callback: Actor){
           prec._2.prepare(items(prec._1))
 
           if(prec._2.num_neighbors != 0)
-            callback ! prec._2.dump
+            callback tupled prec._2.dump
         }
       })
     })

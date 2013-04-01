@@ -1,17 +1,16 @@
-import scala.actors.Actor
 import scala.collection.immutable.ListMap
 
 import com.paulasmuth.parallel_cf._
 
-object ExampleRecommender extends Actor {
+object ExampleRecommender {
 
   def main(args: Array[String]) : Unit = {
 
-    // start self, results are sent as messages
-    this.start
+    val callback = (item_id: Int, neighbors: ListMap[Int, Double]) =>
+        println("item_id", item_id, "neighbors", neighbors)
 
     // create a new cf processor
-    val proc = new ParallelCF(this)
+    val proc = new ParallelCF(callback)
 
     // read a csv file with headers, one line per order, columns: (user_id, item_id)
     (new CSVReader[Unit]((line: Map[Symbol, Int]) => {
@@ -21,16 +20,6 @@ object ExampleRecommender extends Actor {
     // start the processing
     proc.process()
 
-  }
-
-  def act = {
-    Actor.loop { react {
-
-      // print each result to stdout
-      case (item_id: Int, neighbors: ListMap[Int, Double]) =>
-        println("item_id", item_id, "neighbors", neighbors)
-
-    }}
   }
 
 }
